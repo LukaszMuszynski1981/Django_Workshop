@@ -24,6 +24,8 @@ urlpatterns = [
     path('showAll', show_all),
     path('delete/<id>', delete),
     path('show/<id>', show_person),
-    path('modify/<id>', modify_person),
-    path('modify/<id>/addAddress', add_address),
+    path('show/<id>/modify', modify_person),
+    path('show/<id>/addAddress', add_address),
+    path('show/<id>/addPhone', add_phone),
+    path('show/<id>/addMail', add_mail)
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

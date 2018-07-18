@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 import random
 from user_stories.models import *
 from django.http import HttpResponse, request
@@ -12,6 +12,15 @@ person_form = '''
     <label>Surname: {}</label><br>
     <label>Who are you: {}</label><br>
 '''
+
+button_set = '''
+    <input type = 'submit' name = 'Send' value = 'Modify'>
+    <input type = 'submit' name = 'Send' value = 'Add Address'>
+    <input type = 'submit' name = 'Send' value = 'Add Phone'>
+    <input type = 'submit' name = 'Send' value = 'Add Email'>
+    <input type = 'submit' name = 'Send' value = 'Add to Group'>
+'''
+
 id_form = '''
         <label>Id: {}<label><br>
 '''
@@ -32,7 +41,7 @@ base_form = '''
 '''
 button = '''
         <label> {}
-            <input type = 'submit' value = 'Send'>
+            <input type = 'submit' name = 'Send' value = 'Send'>
         </label> 
 '''
 address_form = '''
@@ -55,6 +64,32 @@ address_form = '''
         </label>
 '''
 
+phone_form = '''
+    <form action="#" method="POST">
+        <label> Phone: 
+            <input type = 'text', name = 'phone'>
+        </label>
+        <label> Type: 
+            <select name='Phone Type'>
+                <option value ='1'>Private</option>
+                <option value ='2'>Office</option>
+            </select>
+        </label>
+'''
+
+email_form = '''
+    <form action="#" method="POST">
+        <label> Email: 
+            <input type = 'text', name = 'email'>
+        </label>
+        <label> Type: 
+            <select name='Email Type'>
+                <option value ='1'>Private</option>
+                <option value ='2'>Office</option>
+            </select>
+        </label>
+'''
+
 
 @csrf_exempt
 def show_all(request):
@@ -69,8 +104,33 @@ def show_all(request):
 
 @csrf_exempt
 def show_person(request, id):
-    person = Person.objects.get(id=id)
-    answer = person_form.format(person.name, person.surname, person.who_are_you)
+
+    answer = ''
+
+    if request.method == 'GET':
+        person = Person.objects.get(id=id)
+        answer = form_action + \
+            person_form.format(person.name, person.surname, person.who_are_you) + \
+            button_set
+
+    elif request.method == 'POST':
+
+        if request.POST.get('Send') == 'Modify':
+            answer = '{}/modify'.format(id)
+        elif request.POST.get('Send') == 'Add Address':
+            answer = '{}/addAddress'.format(id)
+        elif request.POST.get('Send') == 'Add Phone':
+            answer = '{}/addPhone'.format(id)
+        elif request.POST.get('Send') == 'Add Email':
+            answer = '{}/addMail'.format(id)
+        elif request.POST.get('Send') == 'Add_to_Group':
+            pass
+
+        return redirect(answer)
+
+    else:
+        answer = 'Something went wrong'
+
     return HttpResponse(answer)
 
 
@@ -128,15 +188,17 @@ def modify_person(request, id):
 
 @csrf_exempt
 def add_address(request, id):
+
     person = Person.objects.get(id=id)
     answer = ''
+
     if request.method == 'GET':
         answer = person_form.format(person.name, person.surname, person.who_are_you) + \
                  '<p></p>' + \
                  address_form + \
                  button.format('Add')
+
     elif request.method == 'POST':
-        pass
         c = request.POST.get('city')
         pc = request.POST.get('pos_code')
         s = request.POST.get('street')
@@ -145,7 +207,59 @@ def add_address(request, id):
         a = Address.objects.create(city=c, pos_code=pc, street=s, street_no=sn, flat=f,\
                                    person_id=person.id)
         answer = 'Address was added'
+
     else:
         answer = 'Something went wrong. Check consistency of provided data'
 
     return HttpResponse(answer)
+
+
+@csrf_exempt
+def add_phone(request, id):
+
+    person = Person.objects.get(id=id)
+    answer = ''
+
+    if request.method == 'GET':
+        answer = person_form.format(person.name, person.surname, person.who_are_you) + \
+                 '<p></p>' + \
+                 phone_form + \
+                 button.format('Add')
+
+    elif request.method == 'POST':
+        phone = request.POST.get('phone')
+        phone_type = request.POST.get('Phone Type')
+        p = Phone.objects.create(phone=phone, phone_type=phone_type, person_id=person.id)
+        answer = 'Phone was added'
+
+    else:
+        answer = 'Something went wrong. Check consistency of provided data'
+
+    return HttpResponse(answer)
+
+
+@csrf_exempt
+def add_mail(request, id):
+
+    person = Person.objects.get(id=id)
+    answer = ''
+
+    if request.method == 'GET':
+        answer = person_form.format(person.name, person.surname, person.who_are_you) + \
+                 '<p></p>' + \
+                 email_form + \
+                 button.format('Add')
+
+    elif request.method == 'POST':
+        email = request.POST.get('email')
+        mail_type = request.POST.get('Email Type')
+        e = Email.objects.create(email=email, email_type=mail_type, person_id=person.id)
+        answer = 'Email was added'
+
+    else:
+        answer = 'Something went wrong. Check consistency of provided data'
+
+    return HttpResponse(answer)
+
+
+

@@ -18,25 +18,25 @@ class Address(models.Model):
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
 
 
-# class Phone(models.Model):
-#     types = (
-#         ('1', 'private'),
-#         ('2', 'office'),
-#     )
-#     phone = models.IntegerField()
-#     phone_type = models.CharField(max_length=1, choices=types, default=1)
-#     person = models.ForeignKey(Person, on_delete=models.CASCADE)
-#
-#
-# class Email(models.Model):
-#     types = (
-#         ('1', 'private'),
-#         ('2', 'office'),
-#     )
-#     email = models.CharField(max_length=100)
-#     email_type = models.CharField(max_length=1, choices=types, default=1)
-#     person = models.ForeignKey(Person, on_delete=models.CASCADE)
-#
+class Phone(models.Model):
+    types = (
+        ('1', 'private'),
+        ('2', 'office'),
+    )
+    phone = models.IntegerField()
+    phone_type = models.CharField(max_length=1, choices=types, default=1)
+    person = models.ForeignKey(Person, on_delete=models.CASCADE)
+
+
+class Email(models.Model):
+    types = (
+        ('1', 'private'),
+        ('2', 'office'),
+    )
+    email = models.CharField(max_length=100)
+    email_type = models.CharField(max_length=1, choices=types, default=1)
+    person = models.ForeignKey(Person, on_delete=models.CASCADE)
+
 #
 # class Group(models.Model):
 #     group_types = (
