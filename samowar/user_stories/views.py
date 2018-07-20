@@ -89,6 +89,33 @@ email_form = '''
             </select>
         </label>
 '''
+show_detail_button = '''
+        <label>
+            <input type = 'submit' name = 'Send' value = 'Details'>
+        </label>
+'''
+
+group_form = '''
+    Choose group you want to assign contact 
+        <label>
+            <select name='Group_type'>
+                <option value ='1'>Favourite</option>
+                <option value ='2'>Family</option>
+                <option value ='3'>Work</option>
+                <option value ='4'>Other</option>
+            </select>
+        </label> 
+'''
+
+show_group_form = '''
+    <form action="#" method="POST">
+        <label> Name: 
+            <input type = 'text', name = 'name'>
+        </label>
+        <label> Surname: 
+            <input type = 'text', name = 'surname'>
+        </label>
+'''
 
 
 @csrf_exempt
@@ -105,26 +132,55 @@ def show_all(request):
 @csrf_exempt
 def show_person(request, id):
 
+    person = Person.objects.get(id=id)
     answer = ''
 
     if request.method == 'GET':
-        person = Person.objects.get(id=id)
         answer = form_action + \
             person_form.format(person.name, person.surname, person.who_are_you) + \
-            button_set
+            button_set + '<br>' + show_detail_button
 
     elif request.method == 'POST':
 
         if request.POST.get('Send') == 'Modify':
             answer = '{}/modify'.format(id)
+
         elif request.POST.get('Send') == 'Add Address':
             answer = '{}/addAddress'.format(id)
+
         elif request.POST.get('Send') == 'Add Phone':
             answer = '{}/addPhone'.format(id)
+
         elif request.POST.get('Send') == 'Add Email':
             answer = '{}/addMail'.format(id)
-        elif request.POST.get('Send') == 'Add_to_Group':
-            pass
+
+        elif request.POST.get('Send') == 'Add to Group':
+            answer = '{}/addGroup'.format(id)
+
+        elif request.POST.get('Send') == 'Details':
+            ph = person.phone_set.all()
+            em = person.email_set.all()
+            ad = person.address_set.all()
+            gr = person.group_set.all()
+
+            answer += '<p></p>Addresses:<p></p>'
+            for x in ad.iterator():
+                answer += '<li>Street: {} {}/{}, City: {}'.format(x.street, x.street_no, \
+                                                                  x.flat, x.city)
+            answer += '<p></p>Phones:<p></p>'
+            for y in ph.iterator():
+                answer += '<li>{} {}'.format(y.phone, y.get_phone_type_display())
+
+            answer += '<p></p>Emails:<p></p>'
+            for z in em.iterator():
+                answer += '<li><a href={}> {} </a> {}'.format(z.email, z.email, z.get_email_type_display())
+
+            answer += '<p></p>Groups:<p></p>'
+            for q in gr.iterator():
+                answer += '<li>{}'.format(q.get_group_type_display())
+
+            return HttpResponse(person_form.format(person.name, person.surname, person.who_are_you) +
+                                answer)
 
         return redirect(answer)
 
@@ -174,13 +230,19 @@ def modify_person(request, id):
                  base_form + \
                  button.format('Modify: ')
     elif request.method == 'POST':
-        per_to_mod.name = request.POST.get('name')
-        per_to_mod.surname = request.POST.get('surname')
-        per_to_mod.who_are_you = request.POST.get('who_are_you')
-        per_to_mod.save()
-        answer = '''Personal date were modify. 
+        a = request.POST.get('name')
+        b = request.POST.get('surname')
+        c = request.POST.get('who_are_you')
+        if not (a == '' or b == ''):
+            per_to_mod.name = a
+            per_to_mod.surname = b
+            per_to_mod.who_are_you = c
+            per_to_mod.save()
+            answer = '''Personal date were modify. 
                     To check if they are correct click the link below<br>
-                '''
+                    '''
+        else:
+            answer = "Name or surname can't be empty"
     else:
         answer = 'Date were not modified. Check if provided values were correct and try again'
     return HttpResponse(answer)
@@ -260,6 +322,67 @@ def add_mail(request, id):
         answer = 'Something went wrong. Check consistency of provided data'
 
     return HttpResponse(answer)
+
+
+@csrf_exempt
+def assign_group(request, id):
+
+    person = Person.objects.get(id=id)
+    answer = ''
+
+    if request.method == 'GET':
+        answer = form_action + group_form + button.format(' Assign: ')
+
+    elif request.method == 'POST':
+        a = request.POST.get('Group_type')
+        b = Group.objects.get(group_type=a)
+        b.person.add(person)
+        answer = 'Group was assigned'
+
+    else:
+        answer = 'Something went wrong. Check consistency of provided data'
+
+    return HttpResponse(answer)
+
+
+@csrf_exempt
+def search_group(request):
+
+    answer = ''
+
+    if request.method == 'GET':
+        answer = show_group_form + button.format('')
+
+    elif request.method == 'POST':
+
+        name = request.POST.get('name')
+        surname = request.POST.get('surname')
+        groups = ''
+
+        if name != '' and surname != '':
+            person = Person.objects.get(name=name, surname=surname)
+            groups = person.group_set.all()
+
+        elif name == '':
+            person = Person.objects.filter(surname=surname)
+            groups = person.group_set.all()
+
+        elif surname == '':
+            person = Person.objects.filter(name=name)
+            groups = person.group_set.all()
+
+        else:
+            answer = 'Something went wrong. Try again'
+
+        for group in groups:
+            answer += 'Group - {}<br>'.format(group.get_group_type_display())
+
+    return HttpResponse(answer)
+
+
+
+
+
 
 
 

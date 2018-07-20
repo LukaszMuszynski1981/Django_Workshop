@@ -37,14 +37,14 @@ class Email(models.Model):
     email_type = models.CharField(max_length=1, choices=types, default=1)
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
 
-#
-# class Group(models.Model):
-#     group_types = (
-#         ('1', 'Favourite'),
-#         ('2', 'Family'),
-#
-#         ('3', 'Friends'),
-#         ('4', 'Work'),
-#     )
-#     group_type = models.CharField(max_length=1, choices=group_types, default=1)
-#     person = models.ManyToManyField(Person)
+
+class Group(models.Model):
+    group_types = (
+        ('1', 'Favourite'),
+        ('2', 'Family'),
+
+        ('3', 'Work'),
+        ('4', 'Other'),
+    )
+    group_type = models.CharField(max_length=1, choices=group_types, default=1)
+    person = models.ManyToManyField(Person)
