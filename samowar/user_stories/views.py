@@ -365,11 +365,23 @@ def search_group(request):
 
         elif name == '':
             person = Person.objects.filter(surname=surname)
-            groups = person.group_set.all()
+
+            for each in person.iterator():
+                groups = each.group_set.all()
+
+                for group in groups:
+                    answer += 'Group - {}<br>'.format(group.get_group_type_display())
+                answer += '<br>'
 
         elif surname == '':
             person = Person.objects.filter(name=name)
-            groups = person.group_set.all()
+
+            for each in person.iterator():
+                groups = each.group_set.all()
+
+                for group in groups:
+                    answer += 'Group - {}<br>'.format(group.get_group_type_display())
+                answer += '<br>'
 
         else:
             answer = 'Something went wrong. Try again'
